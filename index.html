@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A shuffled flashcard deck for practicing English irregular verb forms.">
+<title>Verb Deck</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --bg:#eef6f5;
+    --surface:#ffffff;
+    --surface-2:#e2f0ee;
+    --ink:#1c2b2a;
+    --ink-soft:#5b706e;
+    --accent:#d6336c;
+    --accent-ink:#ffffff;
+    --accent-2:#1f8f80;
+    --accent-2-soft:#dcf3ef;
+    --accent-3:#c98a00;
+    --accent-3-soft:#fbedcc;
+    --border:#cfe1de;
+    --shadow:rgba(28,43,42,0.14);
+    --danger:#b3261e;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#0f1f1e;
+      --surface:#16302d;
+      --surface-2:#1b3a36;
+      --ink:#eef6f4;
+      --ink-soft:#a3bfba;
+      --accent:#ff7fa8;
+      --accent-ink:#161114;
+      --accent-2:#4fd6c0;
+      --accent-2-soft:#173a35;
+      --accent-3:#ffcf5c;
+      --accent-3-soft:#3a3013;
+      --border:#2b4a46;
+      --shadow:rgba(0,0,0,0.45);
+      --danger:#ff8a80;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0f1f1e;
+    --surface:#16302d;
+    --surface-2:#1b3a36;
+    --ink:#eef6f4;
+    --ink-soft:#a3bfba;
+    --accent:#ff7fa8;
+    --accent-ink:#161114;
+    --accent-2:#4fd6c0;
+    --accent-2-soft:#173a35;
+    --accent-3:#ffcf5c;
+    --accent-3-soft:#3a3013;
+    --border:#2b4a46;
+    --shadow:rgba(0,0,0,0.45);
+    --danger:#ff8a80;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+  body{
+    background:
+      radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--ink-soft) 18%, transparent) 1px, transparent 1.6px) 0 0/22px 22px,
+      var(--bg);
+    color:var(--ink);
+    font-family:"Work Sans", ui-sans-serif, system-ui, sans-serif;
+    padding-inline:16px;
+    padding-block:28px;
+  }
+  h1,h2,h3{font-family:"Baloo 2", ui-rounded, system-ui, sans-serif;}
+  .wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px;}
+
+  header{text-align:center;display:flex;flex-direction:column;gap:6px;}
+  header h1{
+    font-size:clamp(1.9rem, 5vw, 2.6rem);
+    font-weight:800;
+    margin:0;
+    color:var(--ink);
+    text-wrap:balance;
+  }
+  header h1 .dot{color:var(--accent);}
+  header p{margin:0;color:var(--ink-soft);font-size:0.98rem;text-wrap:balance;}
+
+  .tabs{
+    display:flex;
+    gap:4px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:4px;
+    align-self:center;
+  }
+  .tabs button{
+    font-family:"Baloo 2", sans-serif;
+    font-weight:700;
+    font-size:0.95rem;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    padding:9px 20px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .tabs button[aria-selected="true"]{
+    background:var(--surface);
+    color:var(--accent);
+    box-shadow:0 2px 8px var(--shadow);
+  }
+  .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  section[role="tabpanel"][hidden]{display:none!important;}
+
+  /* ---- Practice panel ---- */
+  .pool-note{
+    text-align:center;
+    font-size:0.88rem;
+    color:var(--ink-soft);
+  }
+  .pool-note button{
+    font:inherit;
+    color:var(--accent-2);
+    background:none;
+    border:none;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:22px;
+    box-shadow:0 10px 30px var(--shadow);
+    overflow:hidden;
+  }
+  .card-top{
+    height:8px;
+    background:linear-gradient(90deg, var(--accent), var(--accent-3));
+  }
+  .card-body{
+    padding:36px 28px 28px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+    text-align:center;
+  }
+  .eyebrow{
+    font-family:"Baloo 2", sans-serif;
+    font-weight:700;
+    font-size:0.78rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .word{
+    font-family:"Space Mono", ui-monospace, monospace;
+    font-weight:700;
+    font-size:clamp(2.1rem, 8vw, 3.2rem);
+    word-break:break-word;
+    color:var(--ink);
+  }
+  .progress{
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .reveal-panel{
+    margin-top:6px;
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  @media (max-width:480px){
+    .reveal-panel{grid-template-columns:1fr;}
+  }
+  .reveal-panel[hidden]{display:none!important;}
+  .ans{
+    border-radius:14px;
+    padding:14px 16px;
+    text-align:center;
+  }
+  .ans.simple{background:var(--accent-2-soft);}
+  .ans.part{background:var(--accent-3-soft);}
+  .ans .lbl{
+    font-family:"Baloo 2", sans-serif;
+    font-weight:700;
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+  }
+  .ans.simple .lbl{color:var(--accent-2);}
+  .ans.part .lbl{color:var(--accent-3);}
+  .ans .val{
+    font-family:"Space Mono", ui-monospace, monospace;
+    font-weight:700;
+    font-size:1.4rem;
+    margin-top:4px;
+  }
+
+  .actions{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  button.btn{
+    font-family:"Baloo 2", sans-serif;
+    font-weight:700;
+    font-size:1rem;
+    border-radius:999px;
+    padding:13px 26px;
+    border:2px solid transparent;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  button.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);}
+  .btn-secondary{background:transparent;border-color:var(--accent-2);color:var(--accent-2);}
+  .btn-secondary:disabled{opacity:0.45;cursor:default;}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border-color:var(--border);font-size:0.85rem;padding:8px 16px;}
+  #actionBtn{min-width:212px;justify-content:center;}
+  .hint{font-size:0.85rem;color:var(--ink-soft);text-align:center;min-height:1.2em;}
+
+  /* ---- Word bank panel ---- */
+  .bank-controls{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:18px;
+  }
+  .pool-toggle{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .seg{
+    display:flex;
+    background:var(--surface-2);
+    border-radius:999px;
+    padding:3px;
+    gap:2px;
+  }
+  .seg button{
+    font-family:"Baloo 2", sans-serif;
+    font-weight:600;
+    font-size:0.85rem;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    padding:7px 14px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .seg button[aria-pressed="true"]{background:var(--accent-2);color:#fff;}
+
+  .quick-links{display:flex;gap:14px;}
+  .quick-links button{
+    font:inherit;
+    font-size:0.82rem;
+    color:var(--accent-2);
+    background:none;
+    border:none;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+
+  .add-form{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr auto;
+    gap:8px;
+    align-items:end;
+  }
+  @media (max-width:560px){
+    .add-form{grid-template-columns:1fr 1fr;}
+  }
+  .field{display:flex;flex-direction:column;gap:4px;}
+  .field label{font-size:0.74rem;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.06em;}
+  .field input{
+    font-family:"Work Sans", sans-serif;
+    font-size:0.95rem;
+    padding:9px 11px;
+    border-radius:10px;
+    border:1.5px solid var(--border);
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .field input:focus-visible{outline:2px solid var(--accent-2);outline-offset:1px;}
+  .add-form .btn{padding:9px 16px;font-size:0.9rem;white-space:nowrap;}
+
+  .verb-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height:360px;
+    overflow-y:auto;
+    padding-right:4px;
+  }
+  .verb-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 10px;
+    border-radius:12px;
+    background:var(--surface-2);
+  }
+  .verb-row input[type="checkbox"]{
+    width:18px;height:18px;accent-color:var(--accent-2);flex-shrink:0;
+  }
+  .verb-row .triple{
+    font-family:"Space Mono", monospace;
+    font-size:0.86rem;
+    flex:1;
+    overflow-wrap:anywhere;
+  }
+  .verb-row .triple .arrow{color:var(--ink-soft);}
+  .verb-row .del{
+    background:none;border:none;color:var(--danger);cursor:pointer;
+    font-size:1.05rem;line-height:1;padding:4px 6px;flex-shrink:0;
+  }
+  .verb-row .del:focus-visible{outline:2px solid var(--danger);}
+  .bank-summary{font-size:0.82rem;color:var(--ink-soft);text-align:right;}
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+    transform:translate(-50%, 12px);
+    background:var(--ink);
+    color:var(--bg);
+    font-size:0.88rem;
+    font-weight:600;
+    padding:10px 18px;
+    border-radius:999px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.25s ease, transform 0.25s ease;
+    z-index:10;
+  }
+  .toast.show{opacity:1;transform:translate(-50%, 0);}
+  @media (prefers-reduced-motion: reduce){
+    .toast{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Verb Deck<span class="dot">.</span></h1>
+    <p>Shuffle through English irregular verbs — say the past forms, then reveal to check.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button id="tab-practice" role="tab" aria-selected="true" aria-controls="panel-practice">🔀 Practice</button>
+    <button id="tab-bank" role="tab" aria-selected="false" aria-controls="panel-bank">📚 Word Bank</button>
+  </div>
+
+  <section id="panel-practice" role="tabpanel" aria-labelledby="tab-practice">
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <p class="pool-note" id="poolNote">Practicing all verbs. <button id="editPoolLink" type="button">Change this</button></p>
+
+      <div class="actions">
+        <button class="btn btn-secondary" id="actionBtn" type="button">👀 Reveal answer</button>
+      </div>
+
+      <div class="card">
+        <div class="card-top"></div>
+        <div class="card-body">
+          <span class="eyebrow">Present tense</span>
+          <div class="word" id="wordDisplay">—</div>
+          <div class="progress" id="progressDisplay">Card 0 of 0</div>
+
+          <div class="reveal-panel" id="revealPanel" hidden>
+            <div class="ans simple">
+              <div class="lbl">Past simple</div>
+              <div class="val" id="pastSimpleVal">—</div>
+            </div>
+            <div class="ans part">
+              <div class="lbl">Past participle</div>
+              <div class="val" id="pastPartVal">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="hint" id="hintText">Think of the past simple and past participle, then reveal to check.</p>
+    </div>
+  </section>
+
+  <section id="panel-bank" role="tabpanel" aria-labelledby="tab-bank" hidden>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="bank-controls">
+        <div class="pool-toggle">
+          <strong style="font-family:'Baloo 2',sans-serif;font-size:0.95rem;">Practice pool</strong>
+          <div class="seg" role="group" aria-label="Practice pool">
+            <button id="poolAllBtn" type="button" aria-pressed="true">Whole list</button>
+            <button id="poolSelectedBtn" type="button" aria-pressed="false">Only checked</button>
+          </div>
+        </div>
+        <div class="quick-links">
+          <button id="selectAllBtn" type="button">Check all</button>
+          <button id="selectNoneBtn" type="button">Uncheck all</button>
+        </div>
+      </div>
+
+      <div class="bank-controls">
+        <strong style="font-family:'Baloo 2',sans-serif;font-size:0.95rem;">Add your own verb</strong>
+        <form class="add-form" id="addForm">
+          <div class="field">
+            <label for="inPresent">Present</label>
+            <input id="inPresent" placeholder="e.g. swim" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="inPast">Past simple</label>
+            <input id="inPast" placeholder="e.g. swam" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="inPart">Past participle</label>
+            <input id="inPart" placeholder="e.g. swum" autocomplete="off">
+          </div>
+          <button class="btn btn-primary" type="submit">+ Add</button>
+        </form>
+        <p class="hint" id="formHint" style="min-height:1em;"></p>
+      </div>
+
+      <div class="bank-controls">
+        <div class="verb-list" id="verbList"></div>
+        <p class="bank-summary" id="bankSummary"></p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BUILT_IN = [
+    ["be","was/were","been"],["become","became","become"],["begin","began","begun"],
+    ["break","broke","broken"],["bring","brought","brought"],["build","built","built"],
+    ["buy","bought","bought"],["catch","caught","caught"],["choose","chose","chosen"],
+    ["come","came","come"],["cost","cost","cost"],["cut","cut","cut"],
+    ["do","did","done"],["draw","drew","drawn"],["drink","drank","drunk"],
+    ["drive","drove","driven"],["eat","ate","eaten"],["fall","fell","fallen"],
+    ["feel","felt","felt"],["fight","fought","fought"],["find","found","found"],
+    ["fly","flew","flown"],["forget","forgot","forgotten"],["get","got","gotten"],
+    ["give","gave","given"],["go","went","gone"],["grow","grew","grown"],
+    ["have","had","had"],["hear","heard","heard"],["hide","hid","hidden"],
+    ["hit","hit","hit"],["hold","held","held"],["keep","kept","kept"],
+    ["know","knew","known"],["leave","left","left"],["lend","lent","lent"],
+    ["let","let","let"],["lie (down)","lay","lain"],["lose","lost","lost"],
+    ["make","made","made"],["mean","meant","meant"],["meet","met","met"],
+    ["pay","paid","paid"],["put","put","put"],["read","read","read"],
+    ["ride","rode","ridden"],["ring","rang","rung"],["rise","rose","risen"],
+    ["run","ran","run"],["say","said","said"],["see","saw","seen"],
+    ["sell","sold","sold"],["send","sent","sent"],["set","set","set"],
+    ["shine","shone","shone"],["show","showed","shown"],["sing","sang","sung"],
+    ["sit","sat","sat"],["sleep","slept","slept"],["speak","spoke","spoken"],
+    ["spend","spent","spent"],["stand","stood","stood"],["steal","stole","stolen"],
+    ["swim","swam","swum"],["take","took","taken"],["teach","taught","taught"],
+    ["tell","told","told"],["think","thought","thought"],["throw","threw","thrown"],
+    ["understand","understood","understood"],["wake","woke","woken"],
+    ["wear","wore","worn"],["win","won","won"],["write","wrote","written"]
+  ].map(function(t,i){ return {id:"b"+i, present:t[0], past:t[1], pp:t[2], custom:false}; });
+
+  var LS_CUSTOM = "verbdeck.custom.v1";
+  var LS_CHECKED = "verbdeck.checked.v1";
+  var LS_POOL = "verbdeck.pool.v1";
+
+  function safeGet(key){
+    try { return localStorage.getItem(key); } catch(e){ return null; }
+  }
+  function safeSet(key, val){
+    try { localStorage.setItem(key, val); } catch(e){ /* ignore */ }
+  }
+
+  var custom = [];
+  try {
+    var rawCustom = safeGet(LS_CUSTOM);
+    if (rawCustom) custom = JSON.parse(rawCustom);
+  } catch(e){ custom = []; }
+
+  var checkedMap = {};
+  try {
+    var rawChecked = safeGet(LS_CHECKED);
+    if (rawChecked) checkedMap = JSON.parse(rawChecked);
+  } catch(e){ checkedMap = {}; }
+
+  var poolMode = safeGet(LS_POOL) === "selected" ? "selected" : "all";
+
+  function allVerbs(){ return BUILT_IN.concat(custom); }
+  function isChecked(id){ return checkedMap.hasOwnProperty(id) ? !!checkedMap[id] : true; }
+  function persistCustom(){ safeSet(LS_CUSTOM, JSON.stringify(custom)); }
+  function persistChecked(){ safeSet(LS_CHECKED, JSON.stringify(checkedMap)); }
+  function persistPool(){ safeSet(LS_POOL, poolMode); }
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  var deck = [];
+  var deckIndex = -1;
+
+  function currentPool(){
+    var pool = poolMode === "selected" ? allVerbs().filter(function(v){ return isChecked(v.id); }) : allVerbs();
+    if (pool.length === 0) pool = allVerbs();
+    return pool;
+  }
+
+  function buildDeck(keepFirst){
+    deck = shuffle(currentPool());
+    deckIndex = 0;
+  }
+
+  function showToast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(showToast._h);
+    showToast._h = setTimeout(function(){ t.classList.remove("show"); }, 1800);
+  }
+
+  var wordDisplay = document.getElementById("wordDisplay");
+  var progressDisplay = document.getElementById("progressDisplay");
+  var revealPanel = document.getElementById("revealPanel");
+  var pastSimpleVal = document.getElementById("pastSimpleVal");
+  var pastPartVal = document.getElementById("pastPartVal");
+  var actionBtn = document.getElementById("actionBtn");
+  var hintText = document.getElementById("hintText");
+  var poolNote = document.getElementById("poolNote");
+
+  function setActionState(state){
+    actionBtn.dataset.state = state;
+    if (state === "empty"){
+      actionBtn.disabled = true;
+      actionBtn.textContent = "👀 Reveal answer";
+      actionBtn.classList.remove("btn-primary");
+      actionBtn.classList.add("btn-secondary");
+      return;
+    }
+    actionBtn.disabled = false;
+    if (state === "next"){
+      actionBtn.textContent = "🔀 Next word";
+      actionBtn.classList.remove("btn-secondary");
+      actionBtn.classList.add("btn-primary");
+    } else {
+      actionBtn.textContent = "👀 Reveal answer";
+      actionBtn.classList.remove("btn-primary");
+      actionBtn.classList.add("btn-secondary");
+    }
+  }
+
+  function renderCard(){
+    if (deck.length === 0){
+      wordDisplay.textContent = "—";
+      progressDisplay.textContent = "Card 0 of 0";
+      revealPanel.hidden = true;
+      hintText.textContent = "Add or check at least one verb in the Word Bank.";
+      setActionState("empty");
+      return;
+    }
+    var card = deck[deckIndex];
+    wordDisplay.textContent = card.present;
+    progressDisplay.textContent = "Card " + (deckIndex + 1) + " of " + deck.length;
+    revealPanel.hidden = true;
+    hintText.textContent = "Think of the past simple and past participle, then tap Reveal to check.";
+    setActionState("reveal");
+  }
+
+  function renderPoolNote(){
+    var pool = currentPool();
+    var usingSelected = poolMode === "selected" && pool.length !== allVerbs().length;
+    poolNote.innerHTML = usingSelected
+      ? "Practicing " + pool.length + " selected verb" + (pool.length === 1 ? "" : "s") + ". "
+      : "Practicing all " + pool.length + " verbs. ";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "editPoolLink";
+    btn.textContent = "Change this";
+    btn.addEventListener("click", function(){ selectTab("bank"); });
+    poolNote.appendChild(btn);
+  }
+
+  function nextCard(){
+    if (deck.length === 0) { renderCard(); return; }
+    deckIndex++;
+    if (deckIndex >= deck.length){
+      buildDeck();
+      showToast("🔀 Deck reshuffled!");
+    }
+    renderCard();
+  }
+
+  actionBtn.addEventListener("click", function(){
+    if (deck.length === 0) return;
+    if (actionBtn.dataset.state === "reveal"){
+      var card = deck[deckIndex];
+      pastSimpleVal.textContent = card.past;
+      pastPartVal.textContent = card.pp;
+      revealPanel.hidden = false;
+      hintText.textContent = "Nice! Tap Next word for another verb.";
+      setActionState("next");
+    } else {
+      nextCard();
+    }
+  });
+
+  /* ---- Tabs ---- */
+  var tabPractice = document.getElementById("tab-practice");
+  var tabBank = document.getElementById("tab-bank");
+  var panelPractice = document.getElementById("panel-practice");
+  var panelBank = document.getElementById("panel-bank");
+
+  function selectTab(which){
+    var practiceOn = which === "practice";
+    tabPractice.setAttribute("aria-selected", practiceOn ? "true" : "false");
+    tabBank.setAttribute("aria-selected", practiceOn ? "false" : "true");
+    panelPractice.hidden = !practiceOn;
+    panelBank.hidden = practiceOn;
+  }
+  tabPractice.addEventListener("click", function(){ selectTab("practice"); });
+  tabBank.addEventListener("click", function(){ selectTab("bank"); });
+
+  /* ---- Word bank ---- */
+  var poolAllBtn = document.getElementById("poolAllBtn");
+  var poolSelectedBtn = document.getElementById("poolSelectedBtn");
+  var verbListEl = document.getElementById("verbList");
+  var bankSummary = document.getElementById("bankSummary");
+
+  function setPoolMode(mode){
+    poolMode = mode;
+    persistPool();
+    poolAllBtn.setAttribute("aria-pressed", mode === "all" ? "true" : "false");
+    poolSelectedBtn.setAttribute("aria-pressed", mode === "selected" ? "true" : "false");
+    buildDeck();
+    renderCard();
+    renderPoolNote();
+  }
+  poolAllBtn.addEventListener("click", function(){ setPoolMode("all"); });
+  poolSelectedBtn.addEventListener("click", function(){ setPoolMode("selected"); });
+
+  function renderVerbList(){
+    verbListEl.innerHTML = "";
+    var verbs = allVerbs();
+    verbs.forEach(function(v){
+      var row = document.createElement("div");
+      row.className = "verb-row";
+
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.id = "chk-" + v.id;
+      cb.checked = isChecked(v.id);
+      cb.addEventListener("change", function(){
+        checkedMap[v.id] = cb.checked;
+        persistChecked();
+        renderBankSummary();
+        if (poolMode === "selected"){ buildDeck(); renderCard(); renderPoolNote(); }
+      });
+      row.appendChild(cb);
+
+      var label = document.createElement("label");
+      label.className = "triple";
+      label.setAttribute("for", cb.id);
+      label.innerHTML = escapeHtml(v.present) + ' <span class="arrow">&rarr;</span> ' +
+        escapeHtml(v.past) + ' <span class="arrow">&rarr;</span> ' + escapeHtml(v.pp);
+      row.appendChild(label);
+
+      if (v.custom){
+        var del = document.createElement("button");
+        del.type = "button";
+        del.className = "del";
+        del.setAttribute("aria-label", "Remove " + v.present);
+        del.textContent = "✕";
+        del.addEventListener("click", function(){
+          custom = custom.filter(function(c){ return c.id !== v.id; });
+          delete checkedMap[v.id];
+          persistCustom();
+          persistChecked();
+          renderVerbList();
+          renderBankSummary();
+          buildDeck();
+          renderCard();
+          renderPoolNote();
+        });
+        row.appendChild(del);
+      }
+
+      verbListEl.appendChild(row);
+    });
+  }
+
+  function renderBankSummary(){
+    var verbs = allVerbs();
+    var checkedCount = verbs.filter(function(v){ return isChecked(v.id); }).length;
+    bankSummary.textContent = verbs.length + " verbs total • " + checkedCount + " checked";
+  }
+
+  document.getElementById("selectAllBtn").addEventListener("click", function(){
+    allVerbs().forEach(function(v){ checkedMap[v.id] = true; });
+    persistChecked();
+    renderVerbList();
+    renderBankSummary();
+    if (poolMode === "selected"){ buildDeck(); renderCard(); renderPoolNote(); }
+  });
+  document.getElementById("selectNoneBtn").addEventListener("click", function(){
+    allVerbs().forEach(function(v){ checkedMap[v.id] = false; });
+    persistChecked();
+    renderVerbList();
+    renderBankSummary();
+    if (poolMode === "selected"){ buildDeck(); renderCard(); renderPoolNote(); }
+  });
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  var addForm = document.getElementById("addForm");
+  var inPresent = document.getElementById("inPresent");
+  var inPast = document.getElementById("inPast");
+  var inPart = document.getElementById("inPart");
+  var formHint = document.getElementById("formHint");
+  var customCounter = custom.reduce(function(max, c){
+    var n = parseInt(c.id.replace("c",""), 10);
+    return isNaN(n) ? max : Math.max(max, n);
+  }, 0);
+
+  addForm.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var p = inPresent.value.trim();
+    var ps = inPast.value.trim();
+    var pp = inPart.value.trim();
+    if (!p || !ps || !pp){
+      formHint.textContent = "Fill in all three forms before adding.";
+      formHint.style.color = "var(--danger)";
+      return;
+    }
+    customCounter++;
+    var id = "c" + customCounter;
+    custom.push({ id: id, present: p, past: ps, pp: pp, custom: true });
+    checkedMap[id] = true;
+    persistCustom();
+    persistChecked();
+    inPresent.value = ""; inPast.value = ""; inPart.value = "";
+    formHint.style.color = "var(--accent-2)";
+    formHint.textContent = "Added “" + p + "” to your deck!";
+    inPresent.focus();
+    renderVerbList();
+    renderBankSummary();
+    buildDeck();
+    renderCard();
+    renderPoolNote();
+  });
+
+  /* ---- Init ---- */
+  renderVerbList();
+  renderBankSummary();
+  buildDeck();
+  renderCard();
+  renderPoolNote();
+})();
+</script>
+</body>
+</html>

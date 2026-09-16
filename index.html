@@ -153,6 +153,16 @@
     border-radius:22px;
     box-shadow:0 10px 30px var(--shadow);
     overflow:hidden;
+    cursor:pointer;
+    transition:box-shadow 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+  }
+  .card:hover{box-shadow:0 14px 34px var(--shadow);border-color:var(--accent-2);}
+  .card:active{transform:scale(0.99);}
+  .card:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px;}
+  .card[aria-disabled="true"]{cursor:default;}
+  .card[aria-disabled="true"]:hover{box-shadow:0 10px 30px var(--shadow);border-color:var(--border);}
+  @media (prefers-reduced-motion: reduce){
+    .card{transition:none;}
   }
   .card-top{
     height:8px;
@@ -180,19 +190,6 @@
     font-size:clamp(2.1rem, 8vw, 3.2rem);
     word-break:break-word;
     color:var(--ink);
-    cursor:pointer;
-    border-radius:14px;
-    padding:2px 14px;
-    margin:-2px -14px;
-    transition:background-color 0.15s ease;
-  }
-  .word:hover{background-color:var(--surface-2);}
-  .word:active{background-color:var(--accent-2-soft);}
-  .word:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px;}
-  .word[aria-disabled="true"]{cursor:default;}
-  .word[aria-disabled="true"]:hover{background-color:transparent;}
-  @media (prefers-reduced-motion: reduce){
-    .word{transition:none;}
   }
   .progress{
     font-size:0.82rem;
@@ -414,11 +411,11 @@
         <button class="btn btn-secondary" id="actionBtn" type="button">👀 Reveal answer</button>
       </div>
 
-      <div class="card">
+      <div class="card" id="wordCard" role="button" tabindex="0" aria-label="Reveal answer">
         <div class="card-top"></div>
         <div class="card-body">
           <span class="eyebrow">Present tense</span>
-          <div class="word" id="wordDisplay" role="button" tabindex="0" aria-label="Reveal answer">—</div>
+          <div class="word" id="wordDisplay">—</div>
           <div class="progress" id="progressDisplay">Card 0 of 0</div>
 
           <div class="reveal-panel" id="revealPanel" hidden>
@@ -579,6 +576,7 @@
   }
 
   var wordDisplay = document.getElementById("wordDisplay");
+  var wordCard = document.getElementById("wordCard");
   var progressDisplay = document.getElementById("progressDisplay");
   var revealPanel = document.getElementById("revealPanel");
   var pastSimpleVal = document.getElementById("pastSimpleVal");
@@ -589,23 +587,29 @@
 
   function setActionState(state){
     actionBtn.dataset.state = state;
-    wordDisplay.setAttribute("aria-disabled", state === "reveal" ? "false" : "true");
     if (state === "empty"){
       actionBtn.disabled = true;
       actionBtn.textContent = "👀 Reveal answer";
       actionBtn.classList.remove("btn-primary");
       actionBtn.classList.add("btn-secondary");
+      wordCard.setAttribute("aria-disabled", "true");
+      wordCard.tabIndex = -1;
+      wordCard.setAttribute("aria-label", "No verb selected");
       return;
     }
     actionBtn.disabled = false;
+    wordCard.setAttribute("aria-disabled", "false");
+    wordCard.tabIndex = 0;
     if (state === "next"){
       actionBtn.textContent = "🔀 Next word";
       actionBtn.classList.remove("btn-secondary");
       actionBtn.classList.add("btn-primary");
+      wordCard.setAttribute("aria-label", "Next word");
     } else {
       actionBtn.textContent = "👀 Reveal answer";
       actionBtn.classList.remove("btn-primary");
       actionBtn.classList.add("btn-secondary");
+      wordCard.setAttribute("aria-label", "Reveal answer");
     }
   }
 
@@ -615,8 +619,14 @@
     pastSimpleVal.textContent = card.past;
     pastPartVal.textContent = card.pp;
     revealPanel.hidden = false;
-    hintText.textContent = "Nice! Tap Next word for another verb.";
+    hintText.textContent = "Nice! Tap the card (or Next word) for another verb.";
     setActionState("next");
+  }
+
+  function cardActivate(){
+    if (deck.length === 0) return;
+    if (actionBtn.dataset.state === "reveal") revealCurrentCard();
+    else if (actionBtn.dataset.state === "next") nextCard();
   }
 
   function renderCard(){
@@ -632,7 +642,7 @@
     wordDisplay.textContent = card.present;
     progressDisplay.textContent = "Card " + (deckIndex + 1) + " of " + deck.length;
     revealPanel.hidden = true;
-    hintText.textContent = "Think of the past simple and past participle, then tap Reveal to check.";
+    hintText.textContent = "Think of the past simple and past participle, then tap the card (or Reveal) to check.";
     setActionState("reveal");
   }
 
@@ -660,20 +670,13 @@
     renderCard();
   }
 
-  actionBtn.addEventListener("click", function(){
-    if (deck.length === 0) return;
-    if (actionBtn.dataset.state === "reveal"){
-      revealCurrentCard();
-    } else {
-      nextCard();
-    }
-  });
+  actionBtn.addEventListener("click", cardActivate);
 
-  wordDisplay.addEventListener("click", revealCurrentCard);
-  wordDisplay.addEventListener("keydown", function(ev){
+  wordCard.addEventListener("click", cardActivate);
+  wordCard.addEventListener("keydown", function(ev){
     if (ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){
       ev.preventDefault();
-      revealCurrentCard();
+      cardActivate();
     }
   });
 
